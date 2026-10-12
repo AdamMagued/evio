@@ -16,6 +16,11 @@ type Poll struct {
 	notes noteQueue
 }
 
+// Eventfd creates an eventfd file descriptor.
+func Eventfd() (int, error) {
+	return eventfd()
+}
+
 // OpenPoll ...
 func OpenPoll() *Poll {
 	l := new(Poll)
@@ -24,12 +29,12 @@ func OpenPoll() *Poll {
 		panic(err)
 	}
 	l.fd = p
-	r0, _, e0 := syscall.Syscall(syscall.SYS_EVENTFD2, 0, 0, 0)
-	if e0 != 0 {
+	wfd, err := eventfd()
+	if err != nil {
 		syscall.Close(p)
 		panic(err)
 	}
-	l.wfd = int(r0)
+	l.wfd = wfd
 	l.AddRead(l.wfd)
 	return l
 }
